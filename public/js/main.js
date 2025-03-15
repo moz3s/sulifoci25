@@ -1,5 +1,8 @@
 const kor1 = document.getElementById('kor1');
 const kor2 = document.getElementById('kor2');
+const nextday = document.getElementById('nextday');
+const next = document.getElementById('next');
+const other = document.getElementById('other');
 
 window.onload = async () => {
     if (window.location.pathname.includes('tabella.html')) {
@@ -28,5 +31,28 @@ window.onload = async () => {
             `;
             kor2.appendChild(row);
         }
-    } 
+    }
+    if (window.location.pathname.includes('index.html')) {
+        const response = await fetch('https://focikupa.11cipari.hu/api/meccsek');
+        const res = await response.json();
+        
+        nextday.textContent = res.upcomingMatches[0].date;
+        for (let i = 0; i < res.upcomingMatches.length; i++) {
+            let match = res.upcomingMatches[i];
+            let li = document.createElement('li');
+            li.textContent = `${match.o1} - ${match.o2} ${match.time}`;
+            next.appendChild(li);
+        }
+        for (let i = 0; i < res.otherMatches.length; i++) {
+            let match = res.otherMatches[i];
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${match.date}</td>
+                <td>${match.o1}</td>
+                <td>${match.o2}</td>
+                <td>${match.time}</td>
+            `;
+            other.appendChild(row);
+        }
+    }    
 }
