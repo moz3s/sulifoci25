@@ -37,11 +37,11 @@ nav{
 }
 
 nav span{
-    font-size: x-large;
+    font-size: large;
     text-decoration: underline;
 }
 .title{
-    font-size: xx-large;
+    font-size: x-large;
     font-weight: 600;
     text-decoration: none;
 }
