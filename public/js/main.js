@@ -107,8 +107,8 @@ window.onload = async () => {
                 let row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${match.date}</td>
-                    <td>${match.o1}</td>
-                    <td>${match.o2}</td>
+                    <td><button class="w-25 btn-winner" onclick="selectWinner(${match.id}, 1)">${match.o1}</button></td>
+                    <td><button class="w-25 btn-winner" onclick="selectWinner(${match.id}, 2)">${match.o2}</button></td>
                     <td>${match.time}</td>
                     <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
                 `;
@@ -123,7 +123,7 @@ window.onload = async () => {
                         <td class="bg-success">${match.o1}</td>
                         <td class="bg-danger">${match.o2}</td>
                         <td>${match.time}</td>
-                        <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
+                        <td><button class="btn btn-warning me-5" onclick="resetMatch(${match.id})">Visszaállítás</button><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
 
                     `;
                     done.appendChild(row);
@@ -134,17 +134,7 @@ window.onload = async () => {
                         <td class="bg-danger">${match.o1}</td>
                         <td class="bg-success">${match.o2}</td>
                         <td>${match.time}</td>
-                        <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
-                    `;
-                    done.appendChild(row);
-                } else {
-                    let row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${match.date}</td>
-                        <td>${match.o1}</td>
-                        <td>${match.o2}</td>
-                        <td>${match.time}</td>
-                        <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
+                        <td><button class="btn btn-warning me-5" onclick="resetMatch(${match.id})">Visszaállítás</button><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
                     `;
                     done.appendChild(row);
                 }
@@ -221,32 +211,77 @@ async function addMatch() {
 
         if (response.ok) {
             alert(res.message);
+            window.location.reload();
         } else {
             alert(res.error)
         }
-        window.location.reload();
     } catch (err) {
         console.error("Fetch failed:", err);
     }
 }
 
 async function deleteMatch(matchId) {
+    if (window.confirm("Biztos, hogy törölni akarod ezt a mérkőzést?")) {
+        try {
+            const response = await fetch('https://sulifoci25.hu/api/delete-match', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ matchId })
+            });
+            const res = await response.json();
+    
+            if (response.ok) {
+                alert(res.message);
+                window.location.reload();
+            } else {
+                alert(res.error);
+            }
+        } catch (err) {
+            console.error('Error fetching data', err);
+        }
+    }
+}
+
+async function selectWinner(matchId, winner) {
+    const bunteto = document.getElementById('bunteto').checked;
     try {
-        const response = await fetch('https://sulifoci25.hu/api/delete-match', {
+        const response = await fetch('https://sulifoci25.hu/api/select-winner', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ matchId })
+            body: JSON.stringify({ matchId, winner, bunteto })
         });
         const res = await response.json();
 
         if (response.ok) {
             alert(res.message);
+            window.location.reload();
         } else {
             alert(res.error);
         }
-        window.location.reload();
     } catch (err) {
         console.error('Error fetching data', err);
+    }
+}
+
+async function resetMatch(matchId) {
+    if (window.confirm("Biztos, hogy vissza akarod állítani ezt a mérkőzést?")) {
+        try {
+            const response = await fetch('https://sulifoci25.hu/api/reset-match', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ matchId })
+            });
+            const res = await response.json();
+    
+            if (response.ok) {
+                alert(res.message);
+                window.location.reload();
+            } else {
+                alert(res.error);
+            }
+        } catch (err) {
+            console.error('Error fetching data', err);
+        }
     }
 }
 

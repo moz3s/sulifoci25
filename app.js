@@ -5,10 +5,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const { match } = require('assert');
 
 const db = knex({
     client: 'pg',
@@ -131,8 +129,8 @@ app.get('/api/meccsek', async (req, res) => {
 
 app.get('/api/tabella', async (req, res) => {
     try {
-        const teams_1 = await db.select('osztaly', 'pontszam', 'korosztaly').from('class').where({ korosztaly: 1 }).orderBy('pontszam', 'desc');
-        const teams_2 = await db.select('osztaly', 'pontszam', 'korosztaly').from('class').where({ korosztaly: 2 }).orderBy('pontszam', 'desc');
+        const teams_1 = await db.select('*').from('class').where({ korosztaly: 1 }).orderBy('pontszam', 'desc');
+        const teams_2 = await db.select('*').from('class').where({ korosztaly: 2 }).orderBy('pontszam', 'desc');
         res.json({ teams_1, teams_2 });
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -202,16 +200,147 @@ app.post('/api/delete-match', authenticateToken, async (req, res) => {
     try {
         const { matchId } = req.body;
 
-        const deleteMatch = await db('match').where({ id: matchId }).del();
+        await db.transaction(async (trx) => {
+            const match = await trx('match')
+                .select('*')
+                .where({ id: matchId })
+                .forUpdate()
+                .first();
+
+            if (!match) {
+                return res.status(404).json({ error: "Match not found!" });
+            }
+
+            if (match.winner) {
+                const isPenalty = match.bunteto === true;
+                let winner = match.winner;
+                let loser = match.winner === match.o1 ? match.o2 : match.o1;
+
+                if (isPenalty) {
+                    await trx('class').where({ osztaly: winner }).decrement('pontszam', 2);
+                    await trx('class').where({ osztaly: loser }).decrement('pontszam', 1);
+                } else {
+                    await trx('class').where({ osztaly: winner }).decrement('pontszam', 3);
+                }
+            }
+
+            await trx('match').where({ id: matchId }).del();
+        });
+
         res.json({ message: "A mérkőzés törlésre került" });
     } catch (err) {
+        console.error("Error deleting match:", err);
         res.status(500).json({ error: "Internal server error" });
     }
-})
+});
+
+
 
 app.get('/admin', authenticateToken, (req, res) => {
     res.sendFile(__dirname + '/private/admin.html');
 });
+
+app.post('/api/select-winner', authenticateToken, async (req, res) => {
+    try {
+        const { matchId, winner, bunteto } = req.body;
+
+        await db.transaction(async (trx) => {
+            const match = await trx('match')
+                .select('o1', 'o2', 'winner')
+                .where({ id: matchId })
+                .forUpdate()
+                .first();
+
+            if (!match) {
+                return res.status(404).json({ error: "Match not found!" });
+            }
+
+            if (match.winner) {
+                return res.status(400).json({ error: "Winner has already been selected for this match!" });
+            }
+
+            let winningTeam, losingTeam;
+            if (winner == 1) {
+                winningTeam = match.o1;
+                losingTeam = match.o2;
+            } else if (winner == 2) {
+                winningTeam = match.o2;
+                losingTeam = match.o1;
+            } else {
+                return res.status(400).json({ error: "Helytelen győztes választás!" });
+            }
+
+            await trx('match').where({ id: matchId }).update({ winner: winningTeam });
+
+            if (!bunteto) {
+                await trx('class')
+                    .where({ osztaly: winningTeam })
+                    .increment('pontszam', 3);
+
+                await trx('match')
+                    .where({ id: matchId })
+                    .update({ bunteto: false });
+            } else {
+                await trx('class')
+                    .where({ osztaly: winningTeam })
+                    .increment('pontszam', 2);
+
+                await trx('class')
+                    .where({ osztaly: losingTeam })
+                    .increment('pontszam', 1);
+
+                await trx('match')
+                    .where({ id: matchId })
+                    .update({ bunteto: true });
+            }
+        });
+
+        res.json({ message: "A győztes kiválasztásra került" });
+    } catch (err) {
+        console.error("Error selecting winner:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
+
+app.post('/api/reset-match', authenticateToken, async (req, res) => {
+    try {
+        const { matchId } = req.body;
+
+        const match = await db.select('*').from('match').where({ id: matchId }).first();
+        if (!match) {
+            return res.status(404).json({ error: "Match not found!" });
+        }
+        const isPenalty = match.bunteto === true;
+
+        let winner, loser;
+        if (match.winner === match.o1) {
+            winner = match.o1;
+            loser = match.o2;
+        } else if (match.winner === match.o2) {
+            winner = match.o2;
+            loser = match.o1;
+        } else {
+            return res.status(400).json({ error: "No winner recorded for this match!" });
+        }
+
+        if (isPenalty) {
+            await db('class').where({ osztaly: winner }).decrement('pontszam', 2);
+            await db('class').where({ osztaly: loser }).decrement('pontszam', 1);
+        } else {
+            await db('class').where({ osztaly: winner }).decrement('pontszam', 3);
+        }
+
+        await db('match').where({ id: matchId }).update({ winner: null, bunteto: false });
+
+        res.json({ message: "A mérkőzés visszaállításra került" });
+    } catch (err) {
+        console.error("Error resetting match:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 
 app.get('/login', (req, res) => {
     const token = req.cookies.auth_token;
