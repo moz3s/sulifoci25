@@ -4,6 +4,8 @@ const nextday = document.getElementById('nextday');
 const next = document.getElementById('next');
 const other = document.getElementById('other');
 const prev = document.getElementById('prev');
+const name = document.getElementById('name');
+const password = document.getElementById('password');
 
 window.onload = async () => {
     if (kor1 && kor2) {
@@ -53,8 +55,52 @@ window.onload = async () => {
             other.appendChild(row);
         }
         fillTable(res.prevMatches, prev)
-    }    
+    }
+    if (name && password) {
+        try {
+            const response = await fetch('https://focikupa.11cipari.hu/api/protected-data', {
+                method: "GET",
+                credentials: "include"
+            });
+            if (response.ok) {
+                location.href = '/admin';
+            }
+        } catch (error) {
+            console.log("Auth check error", error);
+        }
+    }
 }
+
+async function loginUser() {
+    const name = document.getElementById('name').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!name || !password) {
+        alert("Minden mezőt tölts ki!");
+        return;
+    }
+
+    try {
+        const response = await fetch('https://focikupa.11cipari.hu/api/login-user', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ name, password })
+        });
+
+        const res = await response.json();
+
+        if (response.ok) {
+            location.href = '/admin';
+        } else {
+            alert(res.error || "Bejelentkezés sikertelen!");
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Hálózati hiba! Próbáld újra.");
+    }
+}
+
 
 function fillTable(matchDB, table) {
     for (let i = 0; i < matchDB.length; i++) {

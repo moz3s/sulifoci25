@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const knex = require('knex');
 const cors = require('cors');
@@ -26,7 +27,44 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(initialPath));
 
-const secretKey = crypto.randomBytes(32).toString('hex');
+const secretKey = process.env.JWT_SECRET_KEY;
+
+app.post('/api/login-user', async (req, res) => {
+    const { name, password } = req.body;
+    if (!name || !password) {
+        return res.status(400).json({ error: "Minden mezőt tölts ki!" });
+    }
+
+    try {
+        const user = await db.select('id', 'name', 'password')
+            .from('users')
+            .where({ name })
+            .first();
+
+        if (!user) {
+            return res.status(400).json({ error: "Helytelen név vagy jelszó!" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Helytelen név vagy jelszó!" });
+        }
+
+        const token = jwt.sign({ userId: user.id, name: user.name }, secretKey, { expiresIn: "1h" });
+
+        res.cookie("auth_token", token, {
+            httpOnly: true,
+            secure: process.env.JWT_SECRET_KEY === "production",
+            sameSite: "strict",
+            maxAge: 3600000
+        });
+
+        res.json({ message: "Login successful", name: user.name });
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 app.get('/api/meccsek', async (req, res) => {
     try {
@@ -91,6 +129,19 @@ app.get('/api/tabella', async (req, res) => {
         res.status(500).json({ error: "Failed to fetch data" });
     }
 });
+
+app.get('/admin', authenticateToken, (req, res) => {
+    res.sendFile(__dirname + '/private/admin.html');
+});
+
+app.get('/login', (req, res) => {
+    const token = req.cookies.auth_token;
+    if (token) {
+        return res.redirect('/admin');
+    }
+    res.sendFile(path.join(__dirname, 'private', 'login.html'));
+});
+
 
 function authenticateToken(req, res, next) {
     const token = req.cookies.auth_token;
