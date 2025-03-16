@@ -44,24 +44,36 @@ app.get('/api/meccsek', async (req, res) => {
 
         const upcomingMatches = (await db('match')
         .select('*')
-        .where('date', earliestDate))
+        .where('date', earliestDate)
+        .orderBy('date').orderBy('time'))
         .map(match => ({
             ...match,
             date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
             time: match.time.slice(0, 5)
         }));
-    
+
         const otherMatches = (await db('match')
         .select('*')
         .where('date', '>', earliestDate)
-        .orderBy('date'))
+        .orderBy('date').orderBy('time'))
         .map(match => ({
             ...match,
             date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
             time: match.time.slice(0, 5)
-        }));     
+        }));
+
+        const prevMatches = (await db('match')
+        .select('*')
+        .where('date', '<', db.raw('CURRENT_DATE'))
+        .orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
+
     
-        res.json({ upcomingMatches, otherMatches });
+        res.json({ upcomingMatches, otherMatches, prevMatches });
     } catch (error) {
         console.error('Error fetching matches:', error);
         res.status(500).json({ error: "Failed to fetch matches" });
