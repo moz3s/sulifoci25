@@ -66,6 +66,16 @@ app.post('/api/login-user', async (req, res) => {
     }
 });
 
+app.post('/api/logout', async (req, res) => {
+    res.clearCookie("auth_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    });
+
+    res.json({ message: "Logout successful" });
+});
+
 app.get('/api/meccsek', async (req, res) => {
     try {
         const firstDate = await db.raw(`
@@ -73,7 +83,6 @@ app.get('/api/meccsek', async (req, res) => {
         `);
         
         const earliestDate = firstDate.rows[0]?.earliest_date;
-        console.log("Earliest match date found:", earliestDate);
 
         if (!earliestDate) {
             console.log("No upcoming matches found.");
@@ -129,6 +138,44 @@ app.get('/api/tabella', async (req, res) => {
         res.status(500).json({ error: "Failed to fetch data" });
     }
 });
+
+app.get('/api/get-teams', async (req, res) => {
+    try {
+        const teams = await db.select('osztaly').from('class').orderBy('osztaly');
+        res.json({ teams });
+    } catch (err) {
+        console.error('Error fetching data', err);
+        res.status(500).json({ error: "Failed to fetch data" });
+    }
+});
+
+app.post('/api/add-match', async (req, res) => {
+    try {
+        const { o1, o2, date, time } = req.body;
+        if (o1 == o2) {
+            return res.status(400).json({ error: "Nem lehet ugyanaz a két csapat!" });
+        }
+
+        const kor1 = await db.select('korosztaly').from('class').where({ osztaly: o1 }).first();
+        const kor2 = await db.select('korosztaly').from('class').where({ osztaly: o2 }).first();
+        if (kor1.korosztaly != kor2.korosztaly) {
+            return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
+        }
+
+        const newMatch = await db('match')
+            .insert({
+                o1,
+                o2,
+                date,
+                time
+            });
+        res.json({ message: "A mérkőzés hozzáadásra került" });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 
 app.get('/admin', authenticateToken, (req, res) => {
     res.sendFile(__dirname + '/private/admin.html');

@@ -6,10 +6,14 @@ const other = document.getElementById('other');
 const prev = document.getElementById('prev');
 const name = document.getElementById('name');
 const password = document.getElementById('password');
+const o1 = document.getElementById('o1');
+const o2 = document.getElementById('o2');
+const date = document.getElementById('date');
+const time = document.getElementById('time');
 
 window.onload = async () => {
     if (kor1 && kor2) {
-        const response = await fetch('https://focikupa.11cipari.hu/api/tabella', {
+        const response = await fetch('https://sulifoci25.hu/api/tabella', {
             method: "GET"
         });
         const res = await response.json();
@@ -36,7 +40,7 @@ window.onload = async () => {
         }
     }
     if (next && nextday && other) {
-        const response = await fetch('https://focikupa.11cipari.hu/api/meccsek', {
+        const response = await fetch('https://sulifoci25.hu/api/meccsek', {
             method: "GET"
         });
         const res = await response.json();
@@ -58,7 +62,7 @@ window.onload = async () => {
     }
     if (name && password) {
         try {
-            const response = await fetch('https://focikupa.11cipari.hu/api/protected-data', {
+            const response = await fetch('https://sulifoci25.hu/api/protected-data', {
                 method: "GET",
                 credentials: "include"
             });
@@ -67,6 +71,28 @@ window.onload = async () => {
             }
         } catch (error) {
             console.log("Auth check error", error);
+        }
+    }
+    if (o1 && o2 && date && time) {
+        try {
+            const response = await fetch('https://sulifoci25.hu/api/get-teams', {
+                method: "GET"
+            });
+            const res = await response.json();
+            
+            fillSelect(o1);
+            fillSelect(o2);
+            function fillSelect(o) {
+                for (let i = 0; i < res.teams.length; i++) {
+                    let team = res.teams[i];
+                    let option = document.createElement('option');
+                    option.setAttribute('value', team.osztaly);
+                    option.innerHTML = team.osztaly;
+                    o.appendChild(option);
+                }
+            }
+        } catch (err) {
+            console.log("Fetch failed", err);
         }
     }
 }
@@ -81,7 +107,7 @@ async function loginUser() {
     }
 
     try {
-        const response = await fetch('https://focikupa.11cipari.hu/api/login-user', {
+        const response = await fetch('https://sulifoci25.hu/api/login-user', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -101,6 +127,50 @@ async function loginUser() {
     }
 }
 
+async function logOut() {
+    try {
+        const response = await fetch('https://sulifoci25.hu/api/logout', {
+            method: "POST",
+            credentials: "include"
+        });
+        const res = await response.json();
+        console.log(res);
+
+        if (response.ok) {
+            location.href = '/';
+        } else {
+            alert(res.error || "Logout failed! Please try again.");
+        }
+    } catch (err) {
+        console.error("Error:", err);
+        alert("Something went wrong! Please try again.");
+    }
+
+}
+
+async function addMatch() {
+    try {
+        const response = await fetch('https://sulifoci25.hu/api/add-match', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                o1: o1.value,
+                o2: o2.value,
+                date: date.value,
+                time: time.value
+            })
+        });
+        const res = await response.json();
+
+        if (response.ok) {
+            alert(res.message);
+        } else {
+            alert(res.error)
+        }
+    } catch (err) {
+        console.error("Fetch failed:", err);
+    }
+}
 
 function fillTable(matchDB, table) {
     for (let i = 0; i < matchDB.length; i++) {
