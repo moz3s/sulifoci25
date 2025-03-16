@@ -31,6 +31,39 @@
             <input type="button" id="add-match" onclick="addMatch()" value="Add Match" class="btn btn-primary">
         </div>
     </div>
+
+    <div class="nextday box">
+        <div>
+            <span>Lezáratlan mérkőzések: </span>
+        </div>
+        <div>
+            <table class="table">
+                <thead>
+                    <th>Dátum</th>
+                    <th>1. csapat</th>
+                    <th>2. csapat</th>
+                    <th>Időpont</th>
+                    <th>Törlés</th>
+                </thead>
+                <tbody id="unDone"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="nextday box">
+        <div>
+            <span>Lezárt mérkőzések: </span>
+        </div>
+        <table class="table">
+            <thead>
+                <th>Dátum</th>
+                <th>1. csapat</th>
+                <th>2. csapat</th>
+                <th>Időpont</th>
+                <th>Törlés</th>
+            </thead>
+            <tbody id="done"></tbody>
+        </table>
+    </div>
     <script src="js/main.js"></script>
 </body>
 </html>

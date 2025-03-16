@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { match } = require('assert');
 
 const db = knex({
     client: 'pg',
@@ -149,6 +150,27 @@ app.get('/api/get-teams', async (req, res) => {
     }
 });
 
+app.get('/api/get-match-admin', async (req, res) => {
+    try {
+        const doneMatch = (await db.select('*').from('match').whereNotNull('winner').orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
+        const unDoneMatch = (await db.select('*').from('match').whereNull('winner').orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
+        res.json({ doneMatch, unDoneMatch });
+    } catch (err) {
+        console.error('Error fetching data', err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 app.post('/api/add-match', async (req, res) => {
     try {
         const { o1, o2, date, time } = req.body;
@@ -176,6 +198,16 @@ app.post('/api/add-match', async (req, res) => {
     }
 });
 
+app.post('/api/delete-match', authenticateToken, async (req, res) => {
+    try {
+        const { matchId } = req.body;
+
+        const deleteMatch = await db('match').where({ id: matchId }).del();
+        res.json({ message: "A mérkőzés törlésre került" });
+    } catch (err) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+})
 
 app.get('/admin', authenticateToken, (req, res) => {
     res.sendFile(__dirname + '/private/admin.html');

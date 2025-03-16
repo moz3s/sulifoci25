@@ -10,6 +10,8 @@ const o1 = document.getElementById('o1');
 const o2 = document.getElementById('o2');
 const date = document.getElementById('date');
 const time = document.getElementById('time');
+const unDone = document.getElementById('unDone');
+const done = document.getElementById('done');
 
 window.onload = async () => {
     if (kor1 && kor2) {
@@ -94,6 +96,62 @@ window.onload = async () => {
         } catch (err) {
             console.log("Fetch failed", err);
         }
+        try {
+            const response = await fetch('https://sulifoci25.hu/api/get-match-admin', {
+                method: "GET"
+            });
+            const res = await response.json();
+
+            for (let i = 0; i < res.unDoneMatch.length; i++) {
+                let match = res.unDoneMatch[i];
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${match.date}</td>
+                    <td>${match.o1}</td>
+                    <td>${match.o2}</td>
+                    <td>${match.time}</td>
+                    <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
+                `;
+                unDone.appendChild(row);
+            }
+            for (let i = 0; i < res.doneMatch.length; i++) {
+                let match = res.doneMatch[i];
+                if (match.winner == match.o1) {
+                    let row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${match.date}</td>
+                        <td class="bg-success">${match.o1}</td>
+                        <td class="bg-danger">${match.o2}</td>
+                        <td>${match.time}</td>
+                        <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
+
+                    `;
+                    done.appendChild(row);
+                } else if (match.winner == match.o2) {
+                    let row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${match.date}</td>
+                        <td class="bg-danger">${match.o1}</td>
+                        <td class="bg-success">${match.o2}</td>
+                        <td>${match.time}</td>
+                        <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
+                    `;
+                    done.appendChild(row);
+                } else {
+                    let row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${match.date}</td>
+                        <td>${match.o1}</td>
+                        <td>${match.o2}</td>
+                        <td>${match.time}</td>
+                        <td><button class="btn btn-danger" onclick="deleteMatch(${match.id})">Törlés</button></td>
+                    `;
+                    done.appendChild(row);
+                }
+            }
+        } catch (err) {
+            console.log("Fetch failed", err);
+        }
     }
 }
 
@@ -145,7 +203,6 @@ async function logOut() {
         console.error("Error:", err);
         alert("Something went wrong! Please try again.");
     }
-
 }
 
 async function addMatch() {
@@ -167,8 +224,29 @@ async function addMatch() {
         } else {
             alert(res.error)
         }
+        window.location.reload();
     } catch (err) {
         console.error("Fetch failed:", err);
+    }
+}
+
+async function deleteMatch(matchId) {
+    try {
+        const response = await fetch('https://sulifoci25.hu/api/delete-match', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ matchId })
+        });
+        const res = await response.json();
+
+        if (response.ok) {
+            alert(res.message);
+        } else {
+            alert(res.error);
+        }
+        window.location.reload();
+    } catch (err) {
+        console.error('Error fetching data', err);
     }
 }
 
