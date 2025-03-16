@@ -57,3 +57,15 @@ nav span{
 .kek{
     color: var(--cl5);
 }
+
+.winner {
+    background-color: lightgreen;
+}
+
+.loser {
+    background-color: red;
+}
+
+.tie {
+    background-color: yellow;
+}

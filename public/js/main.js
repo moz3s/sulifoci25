@@ -3,9 +3,10 @@ const kor2 = document.getElementById('kor2');
 const nextday = document.getElementById('nextday');
 const next = document.getElementById('next');
 const other = document.getElementById('other');
+const prev = document.getElementById('prev');
 
 window.onload = async () => {
-    if (window.location.pathname.includes('tabella.html')) {
+    if (kor1 && kor2) {
         const response = await fetch('https://focikupa.11cipari.hu/api/tabella', {
             method: "GET"
         });
@@ -32,17 +33,14 @@ window.onload = async () => {
             kor2.appendChild(row);
         }
     }
-    if (window.location.pathname.includes('index.html')) {
-        const response = await fetch('https://focikupa.11cipari.hu/api/meccsek');
+    if (next && nextday && other) {
+        const response = await fetch('https://focikupa.11cipari.hu/api/meccsek', {
+            method: "GET"
+        });
         const res = await response.json();
         
         nextday.textContent = res.upcomingMatches[0].date;
-        for (let i = 0; i < res.upcomingMatches.length; i++) {
-            let match = res.upcomingMatches[i];
-            let li = document.createElement('li');
-            li.textContent = `${match.o1} - ${match.o2} ${match.time}`;
-            next.appendChild(li);
-        }
+        fillTable(res.upcomingMatches, next)
         for (let i = 0; i < res.otherMatches.length; i++) {
             let match = res.otherMatches[i];
             let row = document.createElement("tr");
@@ -54,5 +52,40 @@ window.onload = async () => {
             `;
             other.appendChild(row);
         }
+        fillTable(res.prevMatches, prev)
     }    
+}
+
+function fillTable(matchDB, table) {
+    for (let i = 0; i < matchDB.length; i++) {
+        let match = matchDB[i];
+        if (match.winner == match.o1) {
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${match.date}</td>
+                <td class="bg-success">${match.o1}</td>
+                <td class="bg-danger">${match.o2}</td>
+                <td>${match.time}</td>
+            `;
+            table.appendChild(row);
+        } else if (match.winner == match.o2) {
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${match.date}</td>
+                <td class="bg-danger">${match.o1}</td>
+                <td class="bg-success">${match.o2}</td>
+                <td>${match.time}</td>
+            `;
+            table.appendChild(row);
+        } else {
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${match.date}</td>
+                <td>${match.o1}</td>
+                <td>${match.o2}</td>
+                <td>${match.time}</td>
+            `;
+            table.appendChild(row);
+        }
+    }
 }
