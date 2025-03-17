@@ -85,6 +85,9 @@ nav span{
 
 @media only screen and (max-width: 500px ){
 
+    .warning{
+        padding-top: 1.5rem;
+    }
     .title{
         font-size: large;
     }
