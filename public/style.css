@@ -28,6 +28,7 @@ body{
 }
 
 .warning{
+    padding-top: 2rem;
     background-color: yellow;
     border: dashed black 4px;
     text-align: center;
