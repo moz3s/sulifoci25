@@ -28,11 +28,14 @@ body{
 }
 
 .warning{
+    background-color: yellow;
+    border: dashed black 4px;
     display: flex;
     justify-content: center;
     align-items: center;
     height:6rem;
     color: #000;
+    font-weight: 600;
 }
 nav{
     color: var(--cl2);
