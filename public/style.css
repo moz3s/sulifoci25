@@ -27,7 +27,13 @@ body{
     background-color: var(--cl3);
 }
 
-
+.warning{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height:6rem;
+    color: #000;
+}
 nav{
     color: var(--cl2);
     display: flex;
