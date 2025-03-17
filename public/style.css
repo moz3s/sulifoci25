@@ -72,3 +72,22 @@ nav span{
     color: white;
     transition-duration: 0.4s;
 }
+
+@media only screen and (max-width: 500px ){
+
+    .title{
+        font-size: large;
+    }
+    .box{
+        font-size: medium;
+        padding: 0.5rem;
+        margin: 10px;
+    }
+    th{
+        font-size: medium;
+    }
+    td{
+        font-size: medium;
+        background-color: rgba(0, 0, 0, 0);
+    }
+}
