@@ -169,7 +169,7 @@ app.get('/api/get-match-admin', async (req, res) => {
     }
 });
 
-app.post('/api/add-match', async (req, res) => {
+app.post('/api/add-match', authenticateToken, async (req, res) => {
     try {
         const { o1, o2, date, time } = req.body;
         if (o1 == o2) {
