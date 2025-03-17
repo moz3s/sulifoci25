@@ -80,7 +80,7 @@ app.get('/api/meccsek', async (req, res) => {
         const firstDate = await db.raw(`
             SELECT MIN(date) AS earliest_date FROM "match" WHERE date >= CURRENT_DATE
         `);
-        
+
         const earliestDate = firstDate.rows[0]?.earliest_date;
 
         if (!earliestDate) {
@@ -118,7 +118,7 @@ app.get('/api/meccsek', async (req, res) => {
             time: match.time.slice(0, 5)
         }));
 
-    
+
         res.json({ upcomingMatches, otherMatches, prevMatches });
     } catch (error) {
         console.error('Error fetching matches:', error);
@@ -181,6 +181,11 @@ app.post('/api/add-match', authenticateToken, async (req, res) => {
         if (kor1.korosztaly != kor2.korosztaly) {
             return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
         }
+
+	const matchDate = await db.select('date').from('match').where({ date, time }).first();
+	if (matchDate) {
+		return res.status(400).json({ error: "Ebben az időpontban már van mérkőzés" });
+	}
 
         const newMatch = await db('match')
             .insert({
