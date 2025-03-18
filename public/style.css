@@ -7,11 +7,11 @@
 }
 
 
-ul{
+nav ul{
     padding-top: 1rem;
     padding-bottom: 0.5rem;
 }
-ul li{
+nav ul li{
     padding-top: 0.4rem;
     list-style-type: none;
 }
@@ -31,9 +31,25 @@ body{
     padding: 2rem;
     background-color: yellow;
     border: dashed black 4px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     color: #000;
     font-weight: 600;
+}
+.warning div {
+    text-align: center;
+}
+.warning ul{
+    padding-inline-start: 0px;
+}
+.warning ul li{
+    text-align: center;
+    list-style-type: none;
+}
+.achtung{
+    background-color: rgb(143, 174, 216);
+    border: 2px solid black;
 }
 nav{
     color: var(--cl2);
@@ -81,15 +97,6 @@ nav span{
     color: white;
     transition-duration: 0.4s;
 }
-.plakat {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.plakatkep{
-    width: 65vw;
-    margin-top: 2rem;
-}
 
 @media only screen and (max-width: 500px ){
 
@@ -110,9 +117,5 @@ nav span{
     td{
         font-size: medium;
         background-color: rgba(0, 0, 0, 0);
-    }
-    .plakatkep{
-        margin-top: 2rem;
-        width: 95vw;
     }
 }
