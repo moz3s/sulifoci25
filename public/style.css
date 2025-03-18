@@ -97,7 +97,12 @@ nav span{
     color: white;
     transition-duration: 0.4s;
 }
-
+#countdown{
+    margin-top: 2rem;
+    font-size: xx-large;
+    font-weight: 600;
+    text-align: center;
+}
 @media only screen and (max-width: 500px ){
 
     .warning{
