@@ -63,6 +63,7 @@ window.onload = async () => {
         fillTable(res.prevMatches, prev)
     }
     if (name && password) {
+	name.focus();
         try {
             const response = await fetch('https://sulifoci25.hu/api/protected-data', {
                 method: "GET",
@@ -144,6 +145,12 @@ window.onload = async () => {
         }
     }
 }
+
+password.addEventListener('keypress', function(event) {
+	if (event.key == "Enter") {
+		loginUser();
+	}
+});
 
 async function loginUser() {
     const name = document.getElementById('name').value.trim();
