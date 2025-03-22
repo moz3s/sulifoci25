@@ -1,5 +1,7 @@
-const kor1 = document.getElementById('kor1');
-const kor2 = document.getElementById('kor2');
+const csop11 = document.getElementById('csop11');
+const csop12 = document.getElementById('csop12');
+const csop21 = document.getElementById('csop21');
+const csop22 = document.getElementById('csop22');
 const nextday = document.getElementById('nextday');
 const next = document.getElementById('next');
 const other = document.getElementById('other');
@@ -14,31 +16,52 @@ const unDone = document.getElementById('unDone');
 const done = document.getElementById('done');
 
 window.onload = async () => {
-    if (kor1 && kor2) {
+    if (csop11 && csop12 && csop21 && csop22) {
+        console.log('ok');
         const response = await fetch('https://sulifoci25.hu/api/tabella', {
             method: "GET"
         });
         const res = await response.json();
 
-        for (let i=0; i < res.teams_1.length; i++) {
-            let teams = res.teams_1[i];
+        for (let i=0; i < res.teams_11.length; i++) {
+            let teams = res.teams_11[i];
             let row = document.createElement("tr");
             row.innerHTML = `
                 <th scope="row">${i+1}</th>
                 <td>${teams.osztaly}</td>
                 <td>${teams.pontszam}</td>
             `;
-            kor1.appendChild(row);
+            csop11.appendChild(row);
         }
-        for (let i=0; i < res.teams_2.length; i++) {
-            let teams = res.teams_2[i];
+        for (let i=0; i < res.teams_12.length; i++) {
+            let teams = res.teams_12[i];
             let row = document.createElement("tr");
             row.innerHTML = `
                 <th scope="row">${i+1}</th>
                 <td>${teams.osztaly}</td>
                 <td>${teams.pontszam}</td>
             `;
-            kor2.appendChild(row);
+            csop12.appendChild(row);
+        }
+        for (let i=0; i < res.teams_21.length; i++) {
+            let teams = res.teams_21[i];
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <th scope="row">${i+1}</th>
+                <td>${teams.osztaly}</td>
+                <td>${teams.pontszam}</td>
+            `;
+            csop21.appendChild(row);
+        }
+        for (let i=0; i < res.teams_22.length; i++) {
+            let teams = res.teams_22[i];
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <th scope="row">${i+1}</th>
+                <td>${teams.osztaly}</td>
+                <td>${teams.pontszam}</td>
+            `;
+            csop22.appendChild(row);
         }
     }
     if (next && nextday && other) {
@@ -63,18 +86,23 @@ window.onload = async () => {
         fillTable(res.prevMatches, prev)
     }
     if (name && password) {
-	name.focus();
-        try {
-            const response = await fetch('https://sulifoci25.hu/api/protected-data', {
-                method: "GET",
-                credentials: "include"
-            });
-            if (response.ok) {
-                location.href = '/admin';
+        password.addEventListener('keypress', function(event) {
+            if (event.key == "Enter") {
+                loginUser();
             }
-        } catch (error) {
-            console.log("Auth check error", error);
-        }
+        });
+        name.focus();
+            try {
+                const response = await fetch('https://sulifoci25.hu/api/protected-data', {
+                    method: "GET",
+                    credentials: "include"
+                });
+                if (response.ok) {
+                    location.href = '/admin';
+                }
+            } catch (error) {
+                console.log("Auth check error", error);
+            }
     }
     if (o1 && o2 && date && time) {
         try {
@@ -145,12 +173,6 @@ window.onload = async () => {
         }
     }
 }
-
-password.addEventListener('keypress', function(event) {
-	if (event.key == "Enter") {
-		loginUser();
-	}
-});
 
 async function loginUser() {
     const name = document.getElementById('name').value.trim();

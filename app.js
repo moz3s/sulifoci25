@@ -129,9 +129,11 @@ app.get('/api/meccsek', async (req, res) => {
 
 app.get('/api/tabella', async (req, res) => {
     try {
-        const teams_1 = await db.select('*').from('class').where({ korosztaly: 1 }).orderBy('pontszam', 'desc');
-        const teams_2 = await db.select('*').from('class').where({ korosztaly: 2 }).orderBy('pontszam', 'desc');
-        res.json({ teams_1, teams_2 });
+        const teams_11 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 1 }).orderBy('pontszam', 'desc');
+        const teams_12 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 2 }).orderBy('pontszam', 'desc');
+        const teams_21 = await db.select('*').from('class').where({ korosztaly: 2, csoport: 1 }).orderBy('pontszam', 'desc');
+        const teams_22 = await db.select('*').from('class').where({ korosztaly: 2, csoport: 2 }).orderBy('pontszam', 'desc');        
+        res.json({ teams_11, teams_12, teams_21, teams_22 });
     } catch (error) {
         console.error('Error fetching data:', error);
         res.status(500).json({ error: "Failed to fetch data" });
@@ -176,25 +178,28 @@ app.post('/api/add-match', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: "Nem lehet ugyanaz a két csapat!" });
         }
 
-        const kor1 = await db.select('korosztaly').from('class').where({ osztaly: o1 }).first();
-        const kor2 = await db.select('korosztaly').from('class').where({ osztaly: o2 }).first();
+        const kor1 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o1 }).first();
+        const kor2 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o2 }).first();
         if (kor1.korosztaly != kor2.korosztaly) {
             return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
         }
+        if (kor1.csoport != kor2.csoport) {
+            return res.status(400).json({ error: "Azonos csoportból válassz!" });
+        }
 
-	const matchDate = await db.select('date').from('match').where({ date, time }).first();
-	if (matchDate) {
-		return res.status(400).json({ error: "Ebben az időpontban már van mérkőzés" });
-	}
+        const matchDate = await db.select('date').from('match').where({ date, time }).first();
+        if (matchDate) {
+            return res.status(400).json({ error: "Ebben az időpontban már van mérkőzés" });
+        }
 
-        const newMatch = await db('match')
-            .insert({
-                o1,
-                o2,
-                date,
-                time
-            });
-        res.json({ message: "A mérkőzés hozzáadásra került" });
+            const newMatch = await db('match')
+                .insert({
+                    o1,
+                    o2,
+                    date,
+                    time
+                });
+            res.json({ message: "A mérkőzés hozzáadásra került" });
     } catch (err) {
         console.error("Error:", err);
         res.status(500).json({ error: "Internal server error" });
@@ -213,7 +218,7 @@ app.post('/api/delete-match', authenticateToken, async (req, res) => {
                 .first();
 
             if (!match) {
-                return res.status(404).json({ error: "Match not found!" });
+                throw new Error("Match not found!");
             }
 
             if (match.winner) {
@@ -235,7 +240,7 @@ app.post('/api/delete-match', authenticateToken, async (req, res) => {
         res.json({ message: "A mérkőzés törlésre került" });
     } catch (err) {
         console.error("Error deleting match:", err);
-        res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -257,11 +262,11 @@ app.post('/api/select-winner', authenticateToken, async (req, res) => {
                 .first();
 
             if (!match) {
-                return res.status(404).json({ error: "Match not found!" });
+                throw new Error("Match not found!");
             }
 
             if (match.winner) {
-                return res.status(400).json({ error: "Winner has already been selected for this match!" });
+                throw new Error("Winner has already been selected for this match!");
             }
 
             let winningTeam, losingTeam;
@@ -272,7 +277,7 @@ app.post('/api/select-winner', authenticateToken, async (req, res) => {
                 winningTeam = match.o2;
                 losingTeam = match.o1;
             } else {
-                return res.status(400).json({ error: "Helytelen győztes választás!" });
+                throw new Error("Helytelen győztes választás!");
             }
 
             await trx('match').where({ id: matchId }).update({ winner: winningTeam });
@@ -303,9 +308,10 @@ app.post('/api/select-winner', authenticateToken, async (req, res) => {
         res.json({ message: "A győztes kiválasztásra került" });
     } catch (err) {
         console.error("Error selecting winner:", err);
-        res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ error: err.message });
     }
 });
+
 
 
 
