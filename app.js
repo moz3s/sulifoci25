@@ -126,7 +126,6 @@ app.get('/api/meccsek', async (req, res) => {
     }
 });
 
-
 app.get('/api/tabella', async (req, res) => {
     try {
         const teams_11 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 1 }).orderBy('pontszam', 'desc');
@@ -244,8 +243,6 @@ app.post('/api/delete-match', authenticateToken, async (req, res) => {
     }
 });
 
-
-
 app.get('/admin', authenticateToken, (req, res) => {
     res.sendFile(__dirname + '/private/admin.html');
 });
@@ -312,9 +309,6 @@ app.post('/api/select-winner', authenticateToken, async (req, res) => {
     }
 });
 
-
-
-
 app.post('/api/reset-match', authenticateToken, async (req, res) => {
     try {
         const { matchId } = req.body;
@@ -351,7 +345,6 @@ app.post('/api/reset-match', authenticateToken, async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 });
-
 
 app.get('/login', (req, res) => {
     const token = req.cookies.auth_token;
