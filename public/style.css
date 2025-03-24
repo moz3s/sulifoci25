@@ -60,7 +60,9 @@ nav{
     background-color: var(--cl1);
     height: 4rem;
 }
-
+.menet li{
+    padding-bottom: 1.2rem;
+}
 nav span{
     font-size: large;
     text-decoration: underline;

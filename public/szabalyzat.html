@@ -12,46 +12,32 @@
     <nav>
         <span><a href="/tabella.html">Tabella</a></span>
         <span class="title"><a href="/">Ipari Sulifoci 2025</a></span>
-        <span><a href="/szabalyzat.html">Szabályzat</a></span>
+        <span><a href="/szabalyzat.html">Bajnokság</a></span>
     </nav>
 <div class="warning achtung">
     <div>
-        <div>SZABÁLYZAT:</div>
-    <ul>
-        <li>- a csapatokat egy osztályból kell összeállítani</li>
-        <li>- min. 5+1 fős felállás, cserék lehetnek</li>
-    </ul>
+    <div>A BAJNOKSÁG MENETE</div>
+        <ul class="menet">
+            <li>0. a két korosztály 2-2 csoportra lett sorsolással felosztva</li>
+            <li>1. a csoportokon belül mindenki játszik mindenkivel egyszer</li>
+            <li>2. a csoportelsők a másik csoport második helyezettjeivel játszanak</li>
+            <li>3. ezen meccsek vesztesei bronzmérkőzést játszanak, a győztesek döntőt</li>
+            <li>4. a két nyertes csapat a korcsoportból szuperkupáért játszik</li>
+        </ul>
     <div>MECCSEK:</div>
     <ul>
         <li>- hétfő, kedd, szerda, csütörtök</li>
         <li>- betonpályán 14:30 és 16:00 között</li>
         <li>- egy mérkőzés 2 * 15 perc</li>
-        <li>- napi 3 meccs</li>
+        <li>- napi 3 meccs weboldalon talalható beosztas szerint</li>
+    </ul>
+    <div>SZABÁLYZAT:</div>
+    <ul>
+        <li>- a csapatokat egy osztályból kell összeállítani</li>
+        <li>- min. 5+1 fős felállás, cserék lehetnek</li>
     </ul>
     </div>
 </div>
-    <p id="countdown"></p>
-
-    <script>
-        const targetDate = new Date("2025-03-21T23:59:59").getTime();
-
-        const interval = setInterval(function () {
-            const now = new Date().getTime();
-            const timeLeft = targetDate - now;
-
-            if (timeLeft > 0) {
-                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-                document.getElementById("countdown").innerHTML =  `${days} nap ${hours} óra ${minutes} perc <br> a nevezés lezárásáig`;
-            } else {
-                document.getElementById("countdown").innerHTML = "Lezárult a nevezés";
-                clearInterval(interval);
-            }
-        }, 1000);
-    </script>
     
     <script src="js/main.js"></script>
 </body>
