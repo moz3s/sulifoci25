@@ -357,6 +357,17 @@ app.get('/login', (req, res) => {
 
 function authenticateToken(req, res, next) {
     const token = req.cookies.auth_token;
+    if (!token) return res.redirect('/login');
+
+    jwt.verify(token, secretKey, (err, user) => {
+        if (err) return res.redirect('/login');
+        req.user = user;
+        next();
+    });
+}
+
+function checkLogin(req, res, next) {
+    const token = req.cookies.auth_token;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
     jwt.verify(token, secretKey, (err, user) => {
@@ -366,7 +377,7 @@ function authenticateToken(req, res, next) {
     });
 }
 
-app.get('/api/protected-data', authenticateToken, async (req, res) => {
+app.get('/api/protected-data', checkLogin, async (req, res) => {
     try {
         res.json({ message: "Secure data", user: req.user });
     } catch (error) {
