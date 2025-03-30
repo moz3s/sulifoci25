@@ -91,6 +91,7 @@ app.get('/api/meccsek', async (req, res) => {
         const upcomingMatches = (await db('match')
         .select('*')
         .where('date', earliestDate)
+        .whereNull('type')
         .orderBy('date').orderBy('time'))
         .map(match => ({
             ...match,
@@ -101,6 +102,7 @@ app.get('/api/meccsek', async (req, res) => {
         const otherMatches = (await db('match')
         .select('*')
         .where('date', '>', earliestDate)
+        .whereNull('type')
         .orderBy('date').orderBy('time'))
         .map(match => ({
             ...match,
@@ -111,6 +113,7 @@ app.get('/api/meccsek', async (req, res) => {
         const prevMatches = (await db('match')
         .select('*')
         .where('date', '<', db.raw('CURRENT_DATE'))
+        .whereNull('type')
         .orderBy('date').orderBy('time'))
         .map(match => ({
             ...match,
@@ -171,26 +174,27 @@ app.get('/api/get-match-admin', async (req, res) => {
 });
 
 app.post('/api/add-match', authenticateToken, async (req, res) => {
-    try {
-        const { o1, o2, date, time } = req.body;
-        if (o1 == o2) {
-            return res.status(400).json({ error: "Nem lehet ugyanaz a két csapat!" });
-        }
-
-        const kor1 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o1 }).first();
-        const kor2 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o2 }).first();
-        if (kor1.korosztaly != kor2.korosztaly) {
-            return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
-        }
-        if (kor1.csoport != kor2.csoport) {
-            return res.status(400).json({ error: "Azonos csoportból válassz!" });
-        }
-
-        const matchDate = await db.select('date').from('match').where({ date, time }).first();
-        if (matchDate) {
-            return res.status(400).json({ error: "Ebben az időpontban már van mérkőzés" });
-        }
-
+    const { o1, o2, date, time, type, isCup } = req.body;
+    if (!isCup) {
+        try {
+            if (o1 == o2) {
+                return res.status(400).json({ error: "Nem lehet ugyanaz a két csapat!" });
+            }
+    
+            const kor1 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o1 }).first();
+            const kor2 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o2 }).first();
+            if (kor1.korosztaly != kor2.korosztaly) {
+                return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
+            }
+            if (kor1.csoport != kor2.csoport) {
+                return res.status(400).json({ error: "Azonos csoportból válassz!" });
+            }
+    
+            const matchDate = await db.select('date').from('match').where({ date, time }).first();
+            if (matchDate) {
+                return res.status(400).json({ error: "Ebben az időpontban már van mérkőzés" });
+            }
+    
             const newMatch = await db('match')
                 .insert({
                     o1,
@@ -199,9 +203,42 @@ app.post('/api/add-match', authenticateToken, async (req, res) => {
                     time
                 });
             res.json({ message: "A mérkőzés hozzáadásra került" });
-    } catch (err) {
-        console.error("Error:", err);
-        res.status(500).json({ error: "Internal server error" });
+        } catch (err) {
+            console.error("Error:", err);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    } else {
+        try {
+            if (o1 == o2) {
+                return res.status(400).json({ error: "Nem lehet ugyanaz a két csapat!" });
+            }
+    
+            const kor1 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o1 }).first();
+            const kor2 = await db.select('korosztaly', 'csoport').from('class').where({ osztaly: o2 }).first();
+            if (type != "supercup") {
+                if (kor1.korosztaly != kor2.korosztaly) {
+                    return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
+                }
+            }
+    
+            const matchDate = await db.select('date').from('match').where({ date, time }).first();
+            if (matchDate) {
+                return res.status(400).json({ error: "Ebben az időpontban már van mérkőzés" });
+            }
+    
+            const newMatch = await db('match')
+                .insert({
+                    o1,
+                    o2,
+                    date,
+                    time,
+                    type
+                });
+            res.json({ message: "A mérkőzés hozzáadásra került" });
+        } catch (err) {
+            console.error("Error:", err);
+            res.status(500).json({ error: "Internal server error" });
+        }
     }
 });
 
@@ -220,16 +257,18 @@ app.post('/api/delete-match', authenticateToken, async (req, res) => {
                 throw new Error("Match not found!");
             }
 
-            if (match.winner) {
-                const isPenalty = match.bunteto === true;
-                let winner = match.winner;
-                let loser = match.winner === match.o1 ? match.o2 : match.o1;
-
-                if (isPenalty) {
-                    await trx('class').where({ osztaly: winner }).decrement('pontszam', 2);
-                    await trx('class').where({ osztaly: loser }).decrement('pontszam', 1);
-                } else {
-                    await trx('class').where({ osztaly: winner }).decrement('pontszam', 3);
+            if (match.type === null) {
+                if (match.winner) {
+                    const isPenalty = match.bunteto === true;
+                    let winner = match.winner;
+                    let loser = match.winner === match.o1 ? match.o2 : match.o1;
+    
+                    if (isPenalty) {
+                        await trx('class').where({ osztaly: winner }).decrement('pontszam', 2);
+                        await trx('class').where({ osztaly: loser }).decrement('pontszam', 1);
+                    } else {
+                        await trx('class').where({ osztaly: winner }).decrement('pontszam', 3);
+                    }
                 }
             }
 
@@ -279,26 +318,28 @@ app.post('/api/select-winner', authenticateToken, async (req, res) => {
 
             await trx('match').where({ id: matchId }).update({ winner: winningTeam });
 
-            if (!bunteto) {
-                await trx('class')
-                    .where({ osztaly: winningTeam })
-                    .increment('pontszam', 3);
+            if (match.type === null) {
+                if (!bunteto) {
+                    await trx('class')
+                        .where({ osztaly: winningTeam })
+                        .increment('pontszam', 3);
 
-                await trx('match')
-                    .where({ id: matchId })
-                    .update({ bunteto: false });
-            } else {
-                await trx('class')
-                    .where({ osztaly: winningTeam })
-                    .increment('pontszam', 2);
+                    await trx('match')
+                        .where({ id: matchId })
+                        .update({ bunteto: false });
+                } else {
+                    await trx('class')
+                        .where({ osztaly: winningTeam })
+                        .increment('pontszam', 2);
 
-                await trx('class')
-                    .where({ osztaly: losingTeam })
-                    .increment('pontszam', 1);
+                    await trx('class')
+                        .where({ osztaly: losingTeam })
+                        .increment('pontszam', 1);
 
-                await trx('match')
-                    .where({ id: matchId })
-                    .update({ bunteto: true });
+                    await trx('match')
+                        .where({ id: matchId })
+                        .update({ bunteto: true });
+                }
             }
         });
 
@@ -330,11 +371,13 @@ app.post('/api/reset-match', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: "No winner recorded for this match!" });
         }
 
-        if (isPenalty) {
-            await db('class').where({ osztaly: winner }).decrement('pontszam', 2);
-            await db('class').where({ osztaly: loser }).decrement('pontszam', 1);
-        } else {
-            await db('class').where({ osztaly: winner }).decrement('pontszam', 3);
+        if (match.type === null) {
+            if (isPenalty) {
+                await db('class').where({ osztaly: winner }).decrement('pontszam', 2);
+                await db('class').where({ osztaly: loser }).decrement('pontszam', 1);
+            } else {
+                await db('class').where({ osztaly: winner }).decrement('pontszam', 3);
+            }
         }
 
         await db('match').where({ id: matchId }).update({ winner: null, bunteto: false });

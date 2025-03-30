@@ -28,7 +28,17 @@
             <input type="date" name="date" id="date" value="2025-03-24" min="2025-03-24" max="2025-06-15" class="me-3">
             <label for="time">Idő: </label>
             <input type="time" name="time" id="time" value="14:30:00" class="me-3">
+            <label for="type">Típus (Üres, ha nem kupa): </label>
+            <select name="type" id="type" class="me-3">
+                <option value="pre-final">Elődöntő</option>
+                <option value="bronze">Bronz</option>
+                <option value="final">Döntő</option>
+                <option value="supercup">Szuperkupa</option>
+            </select>
             <input type="button" id="add-match" onclick="addMatch()" value="Add Match" class="btn btn-primary">
+        </div>
+        <div>
+            <span><label for="isCup" class="mx-2">Kupa</label><input type="checkbox" id="isCup"></span>
         </div>
     </div>
 

@@ -12,6 +12,7 @@ const o1 = document.getElementById('o1');
 const o2 = document.getElementById('o2');
 const date = document.getElementById('date');
 const time = document.getElementById('time');
+const type = document.getElementById('type');
 const unDone = document.getElementById('unDone');
 const done = document.getElementById('done');
 
@@ -225,6 +226,7 @@ async function logOut() {
 }
 
 async function addMatch() {
+    const isCup = document.getElementById('isCup').checked;
     try {
         const response = await fetch('https://sulifoci25.hu/api/add-match', {
             method: "POST",
@@ -233,7 +235,9 @@ async function addMatch() {
                 o1: o1.value,
                 o2: o2.value,
                 date: date.value,
-                time: time.value
+                time: time.value,
+                type: type.value,
+                isCup
             })
         });
         const res = await response.json();
