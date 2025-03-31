@@ -220,6 +220,11 @@ app.post('/api/add-match', authenticateToken, async (req, res) => {
                     return res.status(400).json({ error: "Azonos korcsoportból válassz!" });
                 }
             }
+            if (type == "pre-final") {
+                if (kor1.csoport == kor2.csoport) {
+                    return res.status(400).json({ error: "Elődöntő nem lehet azonos csoportból!" });
+                }
+            }
     
             const matchDate = await db.select('date').from('match').where({ date, time }).first();
             if (matchDate) {
@@ -292,7 +297,7 @@ app.post('/api/select-winner', authenticateToken, async (req, res) => {
 
         await db.transaction(async (trx) => {
             const match = await trx('match')
-                .select('o1', 'o2', 'winner')
+                .select('*')
                 .where({ id: matchId })
                 .forUpdate()
                 .first();
