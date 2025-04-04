@@ -31,6 +31,7 @@ window.onload = async () => {
                 <th scope="row">${i+1}</th>
                 <td>${teams.osztaly}</td>
                 <td>${teams.pontszam}</td>
+                <td>${teams.golkulonbseg}</td>
             `;
             csop11.appendChild(row);
         }
@@ -41,6 +42,7 @@ window.onload = async () => {
                 <th scope="row">${i+1}</th>
                 <td>${teams.osztaly}</td>
                 <td>${teams.pontszam}</td>
+                <td>${teams.golkulonbseg}</td>
             `;
             csop12.appendChild(row);
         }
@@ -51,6 +53,7 @@ window.onload = async () => {
                 <th scope="row">${i+1}</th>
                 <td>${teams.osztaly}</td>
                 <td>${teams.pontszam}</td>
+                <td>${teams.golkulonbseg}</td>
             `;
             csop21.appendChild(row);
         }
@@ -61,6 +64,7 @@ window.onload = async () => {
                 <th scope="row">${i+1}</th>
                 <td>${teams.osztaly}</td>
                 <td>${teams.pontszam}</td>
+                <td>${teams.golkulonbseg}</td>
             `;
             csop22.appendChild(row);
         }
@@ -71,7 +75,7 @@ window.onload = async () => {
         });
         const res = await response.json();
         
-        nextday.textContent = res.upcomingMatches[0].date;
+        nextday.textContent = res.upcomingMatches[0]?.date;
         fillTable(res.upcomingMatches, next)
         for (let i = 0; i < res.otherMatches.length; i++) {
             let match = res.otherMatches[i];

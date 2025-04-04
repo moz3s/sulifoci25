@@ -82,10 +82,21 @@ app.get('/api/meccsek', async (req, res) => {
         `);
 
         const earliestDate = firstDate.rows[0]?.earliest_date;
+        
+        const prevMatches = (await db('match')
+        .select('*')
+        .where('date', '<', db.raw('CURRENT_DATE'))
+        .whereNull('type')
+        .orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
 
         if (!earliestDate) {
             console.log("No upcoming matches found.");
-            return res.json({ upcomingMatches: [], otherMatches: [] });
+            return res.json({ upcomingMatches: [], otherMatches: [], prevMatches });
         }
 
         const upcomingMatches = (await db('match')
@@ -110,18 +121,6 @@ app.get('/api/meccsek', async (req, res) => {
             time: match.time.slice(0, 5)
         }));
 
-        const prevMatches = (await db('match')
-        .select('*')
-        .where('date', '<', db.raw('CURRENT_DATE'))
-        .whereNull('type')
-        .orderBy('date').orderBy('time'))
-        .map(match => ({
-            ...match,
-            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
-            time: match.time.slice(0, 5)
-        }));
-
-
         res.json({ upcomingMatches, otherMatches, prevMatches });
     } catch (error) {
         console.error('Error fetching matches:', error);
@@ -131,10 +130,10 @@ app.get('/api/meccsek', async (req, res) => {
 
 app.get('/api/tabella', async (req, res) => {
     try {
-        const teams_11 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 1 }).orderBy('pontszam', 'desc');
-        const teams_12 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 2 }).orderBy('pontszam', 'desc');
-        const teams_21 = await db.select('*').from('class').where({ korosztaly: 2, csoport: 1 }).orderBy('pontszam', 'desc');
-        const teams_22 = await db.select('*').from('class').where({ korosztaly: 2, csoport: 2 }).orderBy('pontszam', 'desc');        
+        const teams_11 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 1 }).orderBy('pontszam', 'desc').orderBy('golkulonbseg', 'desc');
+        const teams_12 = await db.select('*').from('class').where({ korosztaly: 1, csoport: 2 }).orderBy('pontszam', 'desc').orderBy('golkulonbseg', 'desc');
+        const teams_21 = await db.select('*').from('class').where({ korosztaly: 2, csoport: 1 }).orderBy('pontszam', 'desc').orderBy('golkulonbseg', 'desc');
+        const teams_22 = await db.select('*').from('class').where({ korosztaly: 2, csoport: 2 }).orderBy('pontszam', 'desc').orderBy('golkulonbseg', 'desc');        
         res.json({ teams_11, teams_12, teams_21, teams_22 });
     } catch (error) {
         console.error('Error fetching data:', error);
