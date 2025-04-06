@@ -82,6 +82,46 @@ app.get('/api/meccsek', async (req, res) => {
         `);
 
         const earliestDate = firstDate.rows[0]?.earliest_date;
+
+        const preFinalMatches = (await db('match')
+        .select('*')
+        .where('type', 'pre-final')
+        .orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
+
+        const bronzeMatches = (await db('match')
+        .select('*')
+        .where('type', 'bronze')
+        .orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
+
+        const finalMatches = (await db('match')
+        .select('*')
+        .where('type', 'final')
+        .orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
+
+        const SCMatch = (await db('match')
+        .select('*')
+        .where('type', 'supercup')
+        .orderBy('date').orderBy('time'))
+        .map(match => ({
+            ...match,
+            date: new Date(match.date).toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' }),
+            time: match.time.slice(0, 5)
+        }));
         
         const prevMatches = (await db('match')
         .select('*')
@@ -96,7 +136,7 @@ app.get('/api/meccsek', async (req, res) => {
 
         if (!earliestDate) {
             console.log("No upcoming matches found.");
-            return res.json({ upcomingMatches: [], otherMatches: [], prevMatches });
+            return res.json({ upcomingMatches: [], otherMatches: [], prevMatches, preFinalMatches, bronzeMatches, finalMatches, SCMatch });
         }
 
         const upcomingMatches = (await db('match')
@@ -121,7 +161,7 @@ app.get('/api/meccsek', async (req, res) => {
             time: match.time.slice(0, 5)
         }));
 
-        res.json({ upcomingMatches, otherMatches, prevMatches });
+        res.json({ upcomingMatches, otherMatches, prevMatches, preFinalMatches, bronzeMatches, finalMatches, SCMatch });
     } catch (error) {
         console.error('Error fetching matches:', error);
         res.status(500).json({ error: "Failed to fetch matches" });

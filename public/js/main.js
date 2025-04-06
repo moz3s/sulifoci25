@@ -5,6 +5,10 @@ const csop22 = document.getElementById('csop22');
 const nextday = document.getElementById('nextday');
 const next = document.getElementById('next');
 const other = document.getElementById('other');
+const preFinal = document.getElementById('pre-final');
+const bronze = document.getElementById('bronze');
+const final = document.getElementById('final');
+const supercup = document.getElementById('supercup');
 const prev = document.getElementById('prev');
 const name = document.getElementById('name');
 const password = document.getElementById('password');
@@ -69,26 +73,17 @@ window.onload = async () => {
             csop22.appendChild(row);
         }
     }
-    if (next && nextday && other) {
+    if (preFinal && bronze && final && supercup) {
         const response = await fetch('https://sulifoci25.hu/api/meccsek', {
             method: "GET"
         });
         const res = await response.json();
         
-        nextday.textContent = res.upcomingMatches[0]?.date;
-        fillTable(res.upcomingMatches, next)
-        for (let i = 0; i < res.otherMatches.length; i++) {
-            let match = res.otherMatches[i];
-            let row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${match.date}</td>
-                <td>${match.o1}</td>
-                <td>${match.o2}</td>
-                <td>${match.time}</td>
-            `;
-            other.appendChild(row);
-        }
-        fillTable(res.prevMatches, prev)
+        fillTable(res.preFinalMatches, preFinal);
+        fillTable(res.bronzeMatches, bronze);
+        fillTable(res.finalMatches, final);
+        fillTable(res.SCMatch, supercup);
+        fillTable(res.prevMatches, prev);
     }
     if (name && password) {
         password.addEventListener('keypress', function(event) {
